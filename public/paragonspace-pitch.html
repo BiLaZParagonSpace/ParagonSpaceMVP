@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParagonSpace — Инвесторская презентация</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --cyan:#22d3ee;
+    --fuchsia:#c084fc;
+    --amber:#fbbf24;
+    --bg:#020617;
+    --surface:rgba(255,255,255,0.06);
+    --border:rgba(255,255,255,0.1);
+  }
+  html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    color:#e2e8f0;
+    overflow-x:hidden;
+  }
+  .slide{
+    min-height:100vh;
+    scroll-snap-align:start;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:40px 32px;
+    position:relative;
+    overflow:hidden;
+  }
+  .slide-bg{
+    pointer-events:none;
+    position:absolute;inset:0;
+    background:radial-gradient(circle at 20% 10%,rgba(34,211,238,0.15),transparent 28%),
+               radial-gradient(circle at 80% 15%,rgba(168,85,247,0.12),transparent 26%),
+               radial-gradient(circle at 45% 90%,rgba(251,191,36,0.08),transparent 34%);
+  }
+  .slide-grid{
+    pointer-events:none;
+    position:absolute;inset:0;
+    opacity:0.25;
+    background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);
+    background-size:64px 64px;
+  }
+  .content{position:relative;z-index:1;max-width:1200px;width:100%;margin:0 auto}
+  .center{text-align:center}
+  .slide-number{
+    position:absolute;bottom:24px;right:32px;
+    font-size:13px;color:rgba(255,255,255,0.25);
+    letter-spacing:0.1em;
+    z-index:2;
+  }
+  h1{font-size:clamp(2.8rem,7vw,6rem);font-weight:900;line-height:0.95;letter-spacing:-0.06em;color:#fff}
+  h2{font-size:clamp(2rem,4vw,3.4rem);font-weight:900;line-height:1.05;letter-spacing:-0.04em;color:#fff;margin-bottom:20px}
+  h3{font-size:clamp(1.2rem,2vw,1.6rem);font-weight:700;color:#fff;margin-bottom:10px}
+  .subtitle{font-size:clamp(1rem,1.8vw,1.3rem);color:#94a3b8;line-height:1.6;max-width:700px;margin-bottom:24px}
+  .tag{
+    display:inline-block;
+    border-radius:999px;
+    border:1px solid rgba(192,132,252,0.25);
+    background:rgba(192,132,252,0.1);
+    padding:6px 16px;
+    font-size:13px;
+    color:#e9d5ff;
+    margin-bottom:20px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .grid{display:grid;gap:12px}
+  .grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .grid-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .grid-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{
+    border-radius:24px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    padding:24px;
+    backdrop-filter:blur(6px);
+    transition:border-color 0.2s;
+  }
+  .card:hover{border-color:rgba(34,211,238,0.3)}
+  .card strong{color:#fff;display:block;margin-bottom:6px;font-size:1.1rem}
+  .card p{color:#94a3b8;font-size:14px;line-height:1.6}
+  .metric{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:16px;border-radius:16px;background:rgba(255,255,255,0.05);
+  }
+  .metric-value{font-size:2.2rem;font-weight:900;color:#fff}
+  .metric-label{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.1em}
+  .table-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{background:rgba(2,6,23,0.7);padding:12px 16px;text-align:left;font-weight:600;color:#67e8f9;border-bottom:1px solid var(--border)}
+  td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05)}
+  tr:nth-child(even){background:rgba(255,255,255,0.03)}
+  .badge{
+    display:inline-block;
+    border-radius:999px;
+    padding:2px 10px;
+    font-size:11px;
+    font-weight:600;
+  }
+  .badge-green{background:rgba(74,222,128,0.15);color:#86efac;border:1px solid rgba(74,222,128,0.3)}
+  .badge-blue{background:rgba(96,165,250,0.15);color:#93c5fd;border:1px solid rgba(96,165,250,0.3)}
+  .badge-purple{background:rgba(192,132,252,0.15);color:#d8b4fe;border:1px solid rgba(192,132,252,0.3)}
+  .badge-amber{background:rgba(251,191,36,0.15);color:#fde68a;border:1px solid rgba(251,191,36,0.3)}
+  .badge-cyan{background:rgba(34,211,238,0.15);color:#67e8f9;border:1px solid rgba(34,211,238,0.3)}
+  .badge-red{background:rgba(248,113,113,0.15);color:#fca5a5;border:1px solid rgba(248,113,113,0.3)}
+  .badge-green-dark{background:rgba(74,222,128,0.15);color:#86efac;border:1px solid rgba(74,222,128,0.3)}
+  .badge-orange{background:rgba(251,146,60,0.15);color:#fdba74;border:1px solid rgba(251,146,60,0.3)}
+  .code-block{
+    background:rgba(2,6,23,0.7);
+    border-radius:16px;
+    padding:16px;
+    font-family:'SF Mono','Fira Code',monospace;
+    font-size:12px;
+    line-height:1.7;
+    color:#cbd5e1;
+    overflow-x:auto;
+    white-space:pre-wrap;
+    border:1px solid rgba(255,255,255,0.05);
+  }
+  .icon{font-size:1.6rem;margin-bottom:8px}
+  .arrow{margin:20px 0;font-size:2rem;color:var(--cyan);text-align:center}
+  .highlight-box{
+    border-radius:16px;
+    border:1px solid rgba(34,211,238,0.2);
+    background:rgba(34,211,238,0.1);
+    padding:20px;
+    margin-top:16px;
+  }
+  .highlight-box p{color:#cffafe;font-size:14px;line-height:1.6}
+  .highlight-box strong{color:#fff}
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 24px;
+    background:rgba(2,6,23,0.85);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  nav .logo{display:flex;align-items:center;gap:10px}
+  nav .logo-mark{
+    width:32px;height:32px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--cyan),var(--fuchsia));
+    display:grid;place-items:center;
+    font-weight:900;font-size:16px;color:#020617;
+  }
+  nav .logo-text{font-weight:700;font-size:14px;color:#fff;letter-spacing:0.02em}
+  nav a{
+    color:#94a3b8;text-decoration:none;font-size:13px;
+    padding:6px 14px;border-radius:999px;
+    transition:all 0.2s;
+  }
+  nav a:hover{color:#fff;background:rgba(255,255,255,0.06)}
+  .nav-links{display:flex;gap:4px;flex-wrap:wrap}
+  .download-btn{
+    display:inline-flex;align-items:center;gap:8px;
+    background:linear-gradient(135deg,var(--cyan),var(--fuchsia));
+    color:#020617;font-weight:700;padding:10px 24px;
+    border-radius:999px;text-decoration:none;font-size:14px;
+    transition:transform 0.2s;border:none;cursor:pointer;
+  }
+  .download-btn:hover{transform:scale(1.04)}
+  .footer-note{
+    padding:20px;text-align:center;font-size:12px;color:#475569;
+    border-top:1px solid var(--border);margin-top:20px;
+  }
+  @media print{
+    nav{display:none}
+    .slide{min-height:auto;padding:30px 20px;scroll-snap-align:none;page-break-after:always}
+    .slide-number{display:none}
+    .card,.code-block,.highlight-box,.table-wrap{border-color:#ccc}
+    body{background:#fff;color:#333}
+    h1,h2,h3,.card strong,.metric-value{color:#111}
+    .subtitle,.card p{color:#555}
+    .tag{color:#333;border-color:#999;background:#f0f0f0}
+    .slide-bg,.slide-grid{display:none}
+    th{background:#f5f5f5;color:#333}
+    tr:nth-child(even){background:#fafafa}
+    .highlight-box{background:#f0fdfa;border-color:#99f6e4}
+    .highlight-box p{color:#0f766e}
+    .badge-green{background:#dcfce7;color:#166534}
+    .badge-blue{background:#dbeafe;color:#1e40af}
+    .badge-purple{background:#f3e8ff;color:#6b21a8}
+    .badge-amber{background:#fef3c7;color:#92400e}
+    .badge-cyan{background:#cffafe;color:#155e75}
+    .badge-red{background:#fee2e2;color:#991b1b}
+    .code-block{background:#f8fafc;color:#334155;border-color:#e2e8f0}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark">P</div>
+    <span class="logo-text">ParagonSpace · Pitch Deck</span>
+  </div>
+  <div class="nav-links">
+    <a href="#slide-1">Концепция</a>
+    <a href="#slide-2">Продукт</a>
+    <a href="#slide-3">Архитектура</a>
+    <a href="#slide-4">GameFi</a>
+    <a href="#slide-5">Монетизация</a>
+    <a href="#slide-6">Рынок</a>
+    <a href="#slide-7">Инвесторам</a>
+  </div>
+  <a class="download-btn" href="#" onclick="window.print();return false">📥 Скачать PDF</a>
+</nav>
+
+<!-- СЛАЙД 1: Концепция -->
+<section id="slide-1" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content center">
+    <div class="tag">Genesis · 2026</div>
+    <h1>ParagonSpace</h1>
+    <p style="font-size:clamp(1.2rem,2.4vw,1.8rem);color:#67e8f9;margin-bottom:16px;font-weight:600">
+      1 NFT = 1 цифровой актив на данных звезды
+    </p>
+    <p class="subtitle" style="margin:0 auto 40px">
+      ParagonSpace — блокчейн-протокол цифровых коллекционных активов, основанных на реальных астрономических данных звёзд. Каждый NFT — это цифровой предмет коллекционирования, привязанный к научным параметрам (каталоги Hipparcos, Gaia, TESS, JWST), и к физическому владению небесными телами отношения не имеет.
+    </p>
+    <div class="grid grid-3" style="max-width:800px;margin:0 auto">
+      <div class="card">
+        <div class="icon">⭐</div>
+        <strong>50 genesis assets</strong>
+        <p>Лимитированный первый сектор с реальными астрономическими параметрами</p>
+      </div>
+      <div class="card">
+        <div class="icon">🌌</div>
+        <strong>3D-карта</strong>
+        <p>Интерактивная вселенная с вращением, выбором и метаданными</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔗</div>
+        <strong>On-chain ready</strong>
+        <p>Архитектура готова к миграции в настоящий smart contract</p>
+      </div>
+    </div>
+    <p style="margin-top:30px;font-size:13px;color:#475569">ParagonSpace · Цифровые активы на основе данных звезд через NFT</p>
+  </div>
+  <div class="slide-number">01 / 08</div>
+</section>
+
+<!-- СЛАЙД 2: Продукт -->
+<section id="slide-2" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Product</div>
+    <h2>Продукт: что уже работает</h2>
+    <p class="subtitle">Полноценный MVP с живой 3D-картой, базой данных звезд и mint console.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="icon">🪐</div>
+        <strong>3D-карта со сферами (drag/zoom)</strong>
+        <p>Drag-to-orbit вращение и зум скроллом без прокрутки страницы. 50 реальных звёзд из каталогов ЕКА (Hipparcos, Gaia) и NASA рендерятся как объёмные 3D-шары со светотенью, атмосферой и бликами.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✍️</div>
+        <strong>Mint Console</strong>
+        <p>Введите EVM-адрес — сервер находит ближайший свободный актив, закрепляет его в реестре за кошельком, генерирует tx hash. Полностью рабочий flow с обратной связью.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📊</div>
+        <strong>Live Registry</strong>
+        <p>Постоянная статистика: сколько звезд всего, сколько выпущено, сколько свободно. Данные из PostgreSQL через Drizzle ORM в реальном времени.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📝</div>
+        <strong>Метаданные актива</strong>
+        <p>Имя, созвездие, редкость (Mythic → Common), спектральный класс (O → M), звездная величина, координаты, цвет, держатель, tx hash.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔎</div>
+        <strong>Каталог активов</strong>
+        <p>Интерактивный поиск и фильтрация всех 50 уникальных активов по редкости, созвездию и статусу (minted / свободен).</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧮</div>
+        <strong>Симулятор дохода</strong>
+        <p>Живой калькулятор статов и добычи ресурсов. Пользователь меняет редкость, уровень и бонус созвездия — и видит расчёт APY в реальном времени.</p>
+      </div>
+    </div>
+    <div class="highlight-box">
+      <p><strong>Почему это важно для инвестора:</strong> Продукт уже работает. Не нужны годы разработки — MVP запущен и показывает базовый тезис (1 NFT = 1 цифровой актив на данных звезды) за 2 месяца.</p>
+    </div>
+  </div>
+  <div class="slide-number">02 / 08</div>
+</section>
+
+<!-- СЛАЙД 3: Архитектура -->
+<section id="slide-3" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Technical Architecture</div>
+    <h2>Как это работает под капотом</h2>
+    <p class="subtitle">Полный стек: от базы данных до клиентского интерфейса.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <strong>🗄️ База данных — PostgreSQL + Drizzle ORM</strong>
+        <div class="code-block">Таблица paragon_stars:
+  id (serial, PK)
+  token_id (int, unique)
+  name, constellation, rarity
+  spectral_class, magnitude
+  x, y, z (координаты)
+  color, minted, wallet
+  tx_hash, minted_at</div>
+        <p style="margin-top:8px">Drizzle генерирует типы TypeScript автоматически из схемы. Нет дублирования: схема = БД = типы.</p>
+      </div>
+      <div class="card">
+        <strong>🧠 Сервер — Next.js Server Components</strong>
+        <div class="code-block">// Серверный рендеринг без спинеров
+export default async function HomePage() {
+  const [stars, stats] = await Promise.all([
+    getParagonStars(),  // SQL → PostgreSQL
+    getParagonStats(),
+  ]);
+  return &lt;ParagonStarMap stars={stars} /&gt;;
+}</div>
+        <p style="margin-top:8px">Данные загружаются на сервере и отправляются клиенту готовыми. Никаких загрузчиков.</p>
+      </div>
+      <div class="card">
+        <strong>🎨 Клиент — 3D-рендеринг через CSS</strong>
+        <div class="code-block">Каждая звезда на карте:
+  position: absolute
+  left: 50% + x*0.42
+  top: 50% - y*0.42
+  transform: translateZ(z*2.1px)
+  background: star.color
+  box-shadow: glow effect</div>
+        <p style="margin-top:8px">Полноценное 3D-пространство без WebGL через CSS perspective и pointer events.</p>
+      </div>
+      <div class="card">
+        <strong>🔄 Mint Flow</strong>
+        <div class="code-block">POST /api/stars/mint { wallet }
+→ найти первую звезду WHERE minted=false
+→ UPDATE SET minted=true, wallet, tx_hash
+→ RETURNING * → Response</div>
+        <p style="margin-top:8px">Этот же паттерн будет работать с Ethereum: вместо UPDATE — emit Transfer(0, wallet, tokenId).</p>
+      </div>
+    </div>
+    <div class="highlight-box">
+      <p><strong>Ключевой принцип:</strong> NFT — это не картинка, это запись в базе. Мы знаем, какой актив кому принадлежит, с какими координатами и характеристиками. Переход на blockchain меняет только слой хранения, логика остается той же.</p>
+    </div>
+  </div>
+  <div class="slide-number">03 / 08</div>
+</section>
+
+<!-- СЛАЙД 4: GameFi -->
+<section id="slide-4" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">GameFi Layer</div>
+    <h2>Игровая экономика звезд</h2>
+    <p class="subtitle">Цифровые активы становятся живыми игровыми единицами с прокачкой, ресурсами, альянсами созвездий и PvP.</p>
+
+    <div class="grid grid-3" style="margin-bottom:16px">
+      <div class="card">
+        <strong>📈 Прокачка и редкость</strong>
+        <p>6 уровней редкости: Common → Uncommon → Rare → Epic → Legendary → Mythic. Множитель статов от ×1.0 до ×4.0. Максимальный уровень 99.</p>
+      </div>
+      <div class="card">
+        <strong>⛏️ Добыча ресурсов</strong>
+        <p>5 типов: ✨ Star Dust, 💎 Energy Crystal, 🔷 Data Shard, 🟣 Void Essence, 🌌 Galactic Token. Автоматическая добыча в зависимости от мощности звезды.</p>
+      </div>
+      <div class="card">
+        <strong>⚔️ PvP-сражения</strong>
+        <p>4 сектора: Арена новичков (lvl 1+), Сектор войны (lvl 10+), Зона хаоса (lvl 25+), Галактический турнир (lvl 40+). Galactic Tokens в награду.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Редкость</th><th>Макс. уровень</th><th>Множитель статов</th><th>Цена повышения редкости</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge badge-green">Common</span></td><td>10</td><td>×1.0</td><td>100 ✨ dust</td></tr>
+          <tr><td><span class="badge badge-blue">Uncommon</span></td><td>20</td><td>×1.3</td><td>500 ✨ + 50 💎</td></tr>
+          <tr><td><span class="badge badge-purple">Rare</span></td><td>30</td><td>×1.7</td><td>2000 ✨ + 200 💎 + 50 🔷</td></tr>
+          <tr><td><span class="badge badge-amber">Epic</span></td><td>40</td><td>×2.2</td><td>8000 ✨ + 800 💎 + 200 🔷 + 5 🟣</td></tr>
+          <tr><td><span class="badge badge-cyan">Legendary</span></td><td>50</td><td>×3.0</td><td>25k ✨ + 2.5k 💎 + 800 🔷 + 25 🟣 + 2 🌌</td></tr>
+          <tr><td><span class="badge badge-red">Mythic</span></td><td>99</td><td>×4.0</td><td>100k ✨ + 10k 💎 + 4k 🔷 + 100 🟣 + 10 🌌</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:16px">
+      <div class="card">
+        <strong>🌠 Созвездия (альянсы)</strong>
+        <p>Объединяйте активы в созвездия для бонусов: +15% атаки (3 Uncommon+), +20% защиты, +25% добычи, +30% энергии, +40% открытий.</p>
+      </div>
+      <div class="card">
+        <strong>🚀 Экспедиции</strong>
+        <p>5 миссий: от 2ч (low risk, lvl 1) до 48ч (extreme, lvl 30). Тратят энергию, приносят ресурсы и редкие предметы.</p>
+      </div>
+      <div class="card">
+        <strong>📊 Симулятор дохода</strong>
+        <p>Интерактивный калькулятор на сайте: меняете редкость, уровень и бонус альянса — мгновенно видите статы (Атака/Защита/HP) и прогноз добычи (Star Dust, Crystals, Shards) с расчётом APY.</p>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:16px">
+      <p><strong>Почему GameFi работает в нашей модели:</strong> On-chain хранятся только иммутабельные данные (NFT, редкость, уровень, PvP). Off-chain (в PostgreSQL) — динамические балансы ресурсов, энергия, логи экспедиций и ачивки. Это экономит газ в 100–1000 раз и позволяет делать крутой UX.</p>
+    </div>
+  </div>
+    <div class="slide-number">04 / 09</div>
+</section>
+
+<!-- СЛАЙД 5: Наука и космические миссии (новый) -->
+<section id="slide-5" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Scientific Layer · SpaceX · NASA · ESA</div>
+    <h2>Наука и освоение космоса</h2>
+    <p class="subtitle">ParagonSpace — мост между цифровыми коллекционными активами и реальной космической индустрией. Мы привязываем активы к научным каталогам, реальным миссиям и образовательным программам, не претендуя на физическое владение небесными телами.</p>
+
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="icon">🔭</div>
+        <strong>Научные каталоги</strong>
+        <p>Каждый цифровой актив может быть привязан к реальному объекту из Hipparcos (118k звезд), Gaia DR3 (1.8 млрд), TESS (350k), NASA Exoplanet Archive (5.5k планет) и Messier (110 туманностей).</p>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+          <span class="badge badge-green-dark">Hipparcos · ESA</span>
+          <span class="badge badge-blue">Gaia DR3 · ESA</span>
+          <span class="badge badge-purple">TESS · NASA</span>
+          <span class="badge badge-amber">JWST · NASA/ESA</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">🚀</div>
+        <strong>Космические миссии</strong>
+        <p>Прямая привязка активов к миссиям SpaceX, NASA, Blue Origin и ESA. Держатели получают телеметрию, TLE-данные спутников, научные изображения и статус полета.</p>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+          <span class="badge badge-red">SpaceX Starlink</span>
+          <span class="badge badge-blue">NASA Artemis</span>
+          <span class="badge badge-green-dark">Blue Origin</span>
+          <span class="badge badge-orange">ISS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <strong>🛸 Пример: Starlink & активы</strong>
+        <p>Держатели активов в созвездии 'Starlink Belt' получают реальные TLE-данные спутников, отслеживают 'свой' актив на небе через приложение и получают уведомления при пролете над их локацией.</p>
+      </div>
+      <div class="card">
+        <strong>📸 Пример: JWST Certified</strong>
+        <p>Активы, попавшие в календарь наблюдений James Webb, получают бейдж 'JWST Certified' и настоящее научное изображение в метаданных NFT.</p>
+      </div>
+      <div class="card">
+        <strong>🌍 Пример: Star Name to Orbit</strong>
+        <p>Держатели активов могут отправить название своего актива на орбиту с миссией SpaceX Transporter. Цифровой сертификат полета с GPS-координатами спутника в момент запуска.</p>
+      </div>
+      <div class="card">
+        <strong>🎓 Партнерская программа</strong>
+        <p>4 уровня партнерства для университетов, лабораторий и аэрокосмических компаний: от бесплатного Star Mapper до Mission Partner ($500k+) с разделом доходов от NFT.</p>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <p><strong>Почему наука и SpaceX?</strong> NFT-проекты часто воспринимаются как спекуляция. Привязка к реальным научным данным, каталогам NASA/ESA и миссиям SpaceX добавляет проекту легитимность, образовательную ценность и долгосрочную устойчивость — при этом активы остаются чисто цифровыми и не связаны с физическим владением небесными телами. Кроме того, Илон Маск и SpaceX активно поддерживают образовательные STEM-инициативы — ParagonSpace может стать одной из них.</p>
+    </div>
+  </div>
+  <div class="slide-number">05 / 09</div>
+</section>
+
+<!-- СЛАЙД 6: Монетизация -->
+<section id="slide-5" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Business Model</div>
+    <h2>Монетизация: 6 источников дохода</h2>
+    <p class="subtitle">От быстрых продаж до долгосрочной B2B-экономики.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <span class="badge badge-cyan" style="margin-bottom:8px">01 · Primary mint</span>
+        <strong>Продажа первичных звезд</strong>
+        <p>Самый простой и быстрый доход. Коллекция делится на сектора (Genesis, Explorer, Galaxy). Цена растет от ранних продаж к поздним.</p>
+        <div class="highlight-box" style="padding:12px;margin-top:12px">
+          <p><strong>Пример:</strong> 50 активов × 0.01 ETH → следующие 100 × 0.05 ETH → 250 × 0.1 ETH</p>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge badge-cyan" style="margin-bottom:8px">02 · Secondary royalties</span>
+        <strong>Комиссия с перепродаж (5–10%)</strong>
+        <p>Стандарт NFT-рынка EIP-2981. Если звезда дорожает, ParagonSpace получает процент от каждой перепродажи.</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-cyan" style="margin-bottom:8px">03 · Premium sky tools</span>
+        <strong>Подписка для коллекционеров ($5–15/мес)</strong>
+        <p>Повторяющийся доход (MRR/ARR). Premium: кастомные 3D-профили, аналитика редкостей, экспорт, уведомления. 1000 пользователей × $10 = $120k/год.</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-cyan" style="margin-bottom:8px">04 · Branded constellations</span>
+        <strong>B2B: созвездия для брендов ($5k–$50k+)</strong>
+        <p>Бренды, артисты, YouTube-каналы, игровые проекты получают выделенное созвездие активов. Раздают фанатам + PR + комьюнити.</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-cyan" style="margin-bottom:8px">05 · Launchpad / NFT drops</span>
+        <strong>Комиссия с платформы (5–15%)</strong>
+        <p>ParagonSpace как платформа для сторонних космических коллекций. Масштабируется без расширения своей коллекции.</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-cyan" style="margin-bottom:8px">06 · API licensing</span>
+        <strong>B2B-доступ к карте и реестру активов</strong>
+        <p>Игры, метавселенные, сайты платят за интеграцию звездной карты, данных держателей активов и визуализации. Сетевой эффект + доход.</p>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="grid grid-3">
+      <div class="card center">
+        <div class="icon">💰</div>
+        <strong>Short-term</strong>
+        <p>Primary mint + royalties</p>
+      </div>
+      <div class="card center">
+        <div class="icon">📈</div>
+        <strong>Mid-term</strong>
+        <p>Подписки + Branded созвездия</p>
+      </div>
+      <div class="card center">
+        <div class="icon">🌐</div>
+        <strong>Long-term</strong>
+        <p>Launchpad + API licensing</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">06 / 09</div>
+</section>
+
+<!-- СЛАЙД 7: Рынок и метрики -->
+<section id="slide-6" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Market &amp; Traction</div>
+    <h2>Рынок и метрики</h2>
+    <p class="subtitle">NFT-рынок восстанавливается, consumer-концепции с понятным narrative побеждают.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <strong>📊 Рынок NFT (2025–2026)</strong>
+        <p>После коррекции 2023–2024 рынок переходит от PFPs (профильных аватаров) к utility-ориентированным NFT: игры, membership, коллекционные цифровые активы. ParagonSpace попадает в тренд: понятный актив на основе данных звезд + игровая механика + статус.</p>
+      </div>
+      <div class="card">
+        <strong>🎯 Целевая аудитория</strong>
+        <p>Коллекционеры цифровых активов (ищут редкие объекты), геймеры (PvP, прокачка, ресурсы), крипто-инвесторы (ранние стадии проектов), бренды (маркетинг в Web3).</p>
+      </div>
+      <div class="card">
+        <strong>🏆 Конкурентное преимущество</strong>
+        <p>Большинство NFT-проектов — статичные изображения. ParagonSpace дает: интерактивную 3D-карту, живой симулятор экономики, игровую механику, понятную связь «NFT = цифровой актив на данных звезды», прозрачный реестр активов (on-chain готовность).</p>
+      </div>
+      <div class="card">
+        <strong>📈 Текущие метрики MVP</strong>
+        <div class="grid grid-3" style="margin-top:12px">
+          <div class="metric">
+            <span class="metric-value">50</span>
+            <span class="metric-label">активов в базе</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">5</span>
+            <span class="metric-label">редкостей</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">2</span>
+            <span class="metric-label">интеракт. модуля</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="highlight-box">
+      <p><strong>Конкурентная карта:</strong> NFT-карты звёзд — практически пустая ниша. Есть тяжёлые AAA-проекты вроде "Star Atlas" и простые SVG-карты ("NFT Star Maps") без геймификации. ParagonSpace занимает нишу между ними: интерактивная карта + GameFi + наука без over-engineering.</p>
+    </div>
+  </div>
+  <div class="slide-number">07 / 09</div>
+</section>
+
+<!-- СЛАЙД 8: Инвесторам + Научное сообщество -->
+<section id="slide-7" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Investor Room</div>
+    <h2>Почему стоит инвестировать</h2>
+    <p class="subtitle">Понятная consumer-концепция, работающий MVP, 6 источников дохода, масштабируемая архитектура.</p>
+    <div class="grid grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <strong>✅ Что уже есть</strong>
+        <ul style="list-style:none;margin-top:12px">
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">✓ Полноценная 3D-карта со сферами (50 активов)</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">✓ Интерактивный каталог активов (поиск и фильтрация)</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">✓ Живой симулятор дохода и статов</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">✓ Рабочий mint-flow с кошельком и tx hash</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">✓ Серверный реестр активов на PostgreSQL</li>
+          <li style="padding:6px 0">✓ Архитектура готова к переходу на smart contract</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>🎯 Целевые метрики (12 месяцев)</strong>
+        <ul style="list-style:none;margin-top:12px">
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">10 000+ зарегистрированных EVM-кошельков</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">1 000+ mint-транзакций (выпущенных активов)</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">$100 000+ GMV через marketplace</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">5+ B2B-партнерств (бренды, игры, комьюнити)</li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">3+ научных/космических партнера (университеты, NASA/ESA, SpaceX)</li>
+          <li style="padding:6px 0">Работающая DAO-система голосования</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <span class="badge badge-amber" style="margin-bottom:6px">Pre-seed</span>
+        <strong>$150k–$300k</strong>
+        <p style="margin-top:4px;font-size:13px">Smart contract + аудит ($30–50k) · WalletConnect + on-chain ($40k) · Маркетинг ($50k) · Marketplace ($50k) · Юридическая упаковка ($20k)</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-blue" style="margin-bottom:6px">Seed</span>
+        <strong>$1M–$2M</strong>
+        <p style="margin-top:4px;font-size:13px">Масштабирование команды · AR/VR-карта · DAO · Полноценный marketplace · Брендовые партнерства</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-purple" style="margin-bottom:6px">Series A</span>
+        <strong>$5M+</strong>
+        <p style="margin-top:4px;font-size:13px">Глобальная экспансия · Мультичейн · API платформа · GameFi-студия · Мобильное приложение</p>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
+      <div class="highlight-box" style="max-width:280px;padding:16px;text-align:center">
+        <p><strong>Consumer narrative:</strong> «Цифровая звезда на данных реальной науки» — понятно с первого предложения</p>
+      </div>
+      <div class="highlight-box" style="max-width:280px;padding:16px;text-align:center">
+        <p><strong>Визуальный продукт:</strong> 3D-карта и симулятор экономики создают эмоцию на старте</p>
+      </div>
+      <div class="highlight-box" style="max-width:280px;padding:16px;text-align:center">
+        <p><strong>Масштабируемый supply:</strong> новые сектора, сезоны, созвездия</p>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
+      <div class="highlight-box" style="max-width:340px;padding:16px;text-align:center;border-color:rgba(74,222,128,0.35);background:rgba(74,222,128,0.08)">
+        <p><strong>🔭 Научная легитимность:</strong> привязка к каталогам Hipparcos, Gaia, TESS, NASA Exoplanet Archive, JWST — при этом активы остаются чисто цифровыми, без претензий на владение небесными телами</p>
+      </div>
+      <div class="highlight-box" style="max-width:340px;padding:16px;text-align:center;border-color:rgba(74,222,128,0.35);background:rgba(74,222,128,0.08)">
+        <p><strong>🚀 Космические партнеры:</strong> SpaceX, NASA, Blue Origin, ESA — привязка активов к реальным миссиям открывает B2B-рынок и дает PR мирового уровня</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">08 / 09</div>
+</section>
+
+<!-- СЛАЙД 9: Контакты и следующий шаг -->
+<section id="slide-9" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content center">
+    <div class="tag">Next Steps</div>
+    <h2>Давайте обсудим ParagonSpace</h2>
+    <p class="subtitle" style="margin:0 auto 40px">
+      У вас есть возможность войти в проект на самой ранней стадии.
+      MVP уже работает, архитектура продумана, живой симулятор экономики и каталог запущены, а рынок NFT восстанавливается.
+    </p>
+    <div class="grid grid-3" style="max-width:700px;margin:0 auto 40px">
+      <div class="card">
+        <div class="icon">📱</div>
+        <strong>Демо</strong>
+        <p>Запустите сайт, протестируйте 3D-карту и mint. Это работает.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📄</div>
+        <strong>White paper</strong>
+        <p>Полная документация: токеномика, GameFi, roadmap, команда.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🤝</div>
+        <strong>Встреча</strong>
+        <p>Обсуждение деталей, due diligence, условия раунда.</p>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
+      <div class="highlight-box" style="max-width:280px;padding:16px;text-align:center">
+        <p><strong>🔭 Наука + цифровые активы</strong><br>Привязка к реальным каталогам Hipparcos, Gaia, TESS, NASA Exoplanet Archive</p>
+      </div>
+      <div class="highlight-box" style="max-width:280px;padding:16px;text-align:center">
+        <p><strong>🚀 SpaceX + Blue Origin</strong><br>Реальные космические миссии и программа Star Name to Orbit</p>
+      </div>
+    </div>
+    <p style="font-size:14px;color:#475569;margin-top:20px">
+      ParagonSpace · 2026 · Star data-backed digital asset protocol
+    </p>
+  </div>
+  <div class="slide-number">09 / 09</div>
+</section>
+
+<div class="footer-note">
+  ParagonSpace — инвесторская презентация. Скачано с https://paragonspace.app · Все данные и метрики — проектные оценки.
+</div>
+</body>
+</html>

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParagonSpace — Реализация: Архитектура, Science, GameFi</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--cyan:#22d3ee;--fuchsia:#c084fc;--amber:#fbbf24;--green:#4ade80;--bg:#020617;--surface:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.1)}
+  html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:#e2e8f0;overflow-x:hidden}
+  .slide{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:40px 32px;position:relative;overflow:hidden}
+  .slide-bg{pointer-events:none;position:absolute;inset:0;background:radial-gradient(circle at 20% 10%,rgba(34,211,238,0.15),transparent 28%),radial-gradient(circle at 80% 15%,rgba(168,85,247,0.12),transparent 26%),radial-gradient(circle at 45% 90%,rgba(251,191,36,0.08),transparent 34%)}
+  .slide-grid{pointer-events:none;position:absolute;inset:0;opacity:0.25;background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);background-size:64px 64px}
+  .content{position:relative;z-index:1;max-width:1200px;width:100%;margin:0 auto}
+  .center{text-align:center}
+  .slide-number{position:absolute;bottom:24px;right:32px;font-size:13px;color:rgba(255,255,255,0.25);letter-spacing:0.1em;z-index:2}
+  h1{font-size:clamp(2.8rem,7vw,6rem);font-weight:900;line-height:0.95;letter-spacing:-0.06em;color:#fff}
+  h2{font-size:clamp(2rem,4vw,3.4rem);font-weight:900;line-height:1.05;letter-spacing:-0.04em;color:#fff;margin-bottom:20px}
+  h3{font-size:clamp(1.2rem,2vw,1.6rem);font-weight:700;color:#fff;margin-bottom:10px}
+  h4{font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:6px}
+  .subtitle{font-size:clamp(1rem,1.8vw,1.3rem);color:#94a3b8;line-height:1.6;max-width:700px;margin-bottom:24px}
+  .tag{display:inline-block;border-radius:999px;border:1px solid rgba(192,132,252,0.25);background:rgba(192,132,252,0.1);padding:6px 16px;font-size:13px;color:#e9d5ff;margin-bottom:20px;letter-spacing:0.08em;text-transform:uppercase}
+  .grid{display:grid;gap:12px}
+  .grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .grid-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .grid-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{border-radius:24px;border:1px solid var(--border);background:var(--surface);padding:24px;backdrop-filter:blur(6px);transition:border-color 0.2s}
+  .card:hover{border-color:rgba(34,211,238,0.3)}
+  .card strong{color:#fff;display:block;margin-bottom:6px;font-size:1.05rem}
+  .card p{color:#94a3b8;font-size:14px;line-height:1.6}
+  .table-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--border);margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:rgba(2,6,23,0.7);padding:10px 14px;text-align:left;font-weight:600;color:#67e8f9;border-bottom:1px solid var(--border)}
+  td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05)}
+  tr:nth-child(even){background:rgba(255,255,255,0.03)}
+  .badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:600}
+  .badge-cyan{background:rgba(34,211,238,0.15);color:#67e8f9;border:1px solid rgba(34,211,238,0.3)}
+  .badge-fuchsia{background:rgba(192,132,252,0.15);color:#d8b4fe;border:1px solid rgba(192,132,252,0.3)}
+  .badge-amber{background:rgba(251,191,36,0.15);color:#fde68a;border:1px solid rgba(251,191,36,0.3)}
+  .badge-green{background:rgba(74,222,128,0.15);color:#86efac;border:1px solid rgba(74,222,128,0.3)}
+  .badge-red{background:rgba(248,113,113,0.15);color:#fca5a5;border:1px solid rgba(248,113,113,0.3)}
+  .badge-blue{background:rgba(96,165,250,0.15);color:#93c5fd;border:1px solid rgba(96,165,250,0.3)}
+  .code-block{background:rgba(2,6,23,0.7);border-radius:16px;padding:16px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.7;color:#cbd5e1;overflow-x:auto;white-space:pre-wrap;border:1px solid rgba(255,255,255,0.05);margin-top:8px}
+  .highlight-box{border-radius:16px;border:1px solid rgba(34,211,238,0.2);background:rgba(34,211,238,0.1);padding:20px;margin-top:16px}
+  .highlight-box p{color:#cffafe;font-size:14px;line-height:1.6}
+  .highlight-box strong{color:#fff}
+  .highlight-green{border-color:rgba(74,222,128,0.25);background:rgba(74,222,128,0.08)}
+  .highlight-green p{color:#a7f3d0}
+  .highlight-amber{border-color:rgba(251,191,36,0.25);background:rgba(251,191,36,0.08)}
+  .highlight-amber p{color:#fde68a}
+  .icon{font-size:1.6rem;margin-bottom:8px}
+  .arrow{margin:20px 0;font-size:2rem;color:var(--cyan);text-align:center}
+  ol,ul{color:#94a3b8;font-size:14px;line-height:1.7;padding-left:20px}
+  ol li,ul li{margin-bottom:6px}
+  .flow-step{display:flex;align-items:flex-start;gap:16px;padding:16px;border-radius:16px;background:rgba(255,255,255,0.03);border-left:3px solid var(--cyan);margin-bottom:10px}
+  .flow-step .num{font-size:1.4rem;font-weight:900;color:var(--cyan);min-width:36px}
+  .flow-step p{color:#94a3b8;font-size:14px;line-height:1.5}
+  .flow-step strong{color:#fff}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:rgba(2,6,23,0.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
+  nav .logo{display:flex;align-items:center;gap:10px}
+  nav .logo-mark{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--fuchsia));display:grid;place-items:center;font-weight:900;font-size:16px;color:#020617}
+  nav .logo-text{font-weight:700;font-size:14px;color:#fff;letter-spacing:0.02em}
+  nav a{color:#94a3b8;text-decoration:none;font-size:13px;padding:6px 14px;border-radius:999px;transition:all 0.2s}
+  nav a:hover{color:#fff;background:rgba(255,255,255,0.06)}
+  .nav-links{display:flex;gap:4px;flex-wrap:wrap}
+  .download-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--cyan),var(--fuchsia));color:#020617;font-weight:700;padding:10px 24px;border-radius:999px;text-decoration:none;font-size:14px;transition:transform 0.2s;border:none;cursor:pointer}
+  .download-btn:hover{transform:scale(1.04)}
+  .footer-note{padding:20px;text-align:center;font-size:12px;color:#475569;border-top:1px solid var(--border);margin-top:20px}
+  .feature-list{list-style:none;padding:0}
+  .feature-list li{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;gap:10px}
+  .feature-list li:last-child{border-bottom:none}
+  .diagram{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:16px;font-size:13px}
+  .diagram-box{padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);font-weight:600;color:#fff;text-align:center}
+  .diagram-arrow{color:var(--cyan);font-size:1.2rem;padding:0 4px}
+  @media print{
+    nav{display:none}
+    .slide{min-height:auto;padding:30px 20px;scroll-snap-align:none;page-break-after:always}
+    .slide-number{display:none}
+    .card,.code-block,.highlight-box,.table-wrap,.highlight-green,.highlight-amber{border-color:#ccc}
+    body{background:#fff;color:#333}
+    h1,h2,h3,h4,.card strong{color:#111}
+    .subtitle,.card p,ol,ul{color:#555}
+    .tag{color:#333;border-color:#999;background:#f0f0f0}
+    .slide-bg,.slide-grid{display:none}
+    th{background:#f5f5f5;color:#333}
+    tr:nth-child(even){background:#fafafa}
+    .highlight-box,.highlight-green,.highlight-amber{background:#f0fdfa;border-color:#99f6e4}
+    .highlight-box p,.highlight-green p,.highlight-amber p{color:#0f766e}
+    .badge-cyan{background:#cffafe;color:#155e75}
+    .badge-fuchsia{background:#f3e8ff;color:#6b21a8}
+    .badge-amber{background:#fef3c7;color:#92400e}
+    .badge-green{background:#dcfce7;color:#166534}
+    .badge-red{background:#fee2e2;color:#991b1b}
+    .badge-blue{background:#dbeafe;color:#1e40af}
+    .code-block{background:#f8fafc;color:#334155;border-color:#e2e8f0}
+    .flow-step{border-left-color:#0d9488}
+    .flow-step .num{color:#0d9488}
+    .diagram-box{border-color:#ccc;background:#f5f5f5;color:#333}
+    .diagram-arrow{color:#0d9488}
+    .feature-list li{border-bottom-color:#eee}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark">P</div>
+    <span class="logo-text">ParagonSpace · Implementation</span>
+  </div>
+  <div class="nav-links">
+    <a href="#s1">Обзор</a>
+    <a href="#s2">Архитектура</a>
+    <a href="#s3">Science Layer</a>
+    <a href="#s4">GameFi</a>
+    <a href="#s5">NFT & Smart Contract</a>
+    <a href="#s6">Roadmap</a>
+    <a href="#s7">Бюджет</a>
+    <a href="#s8">Команда</a>
+  </div>
+  <a class="download-btn" href="#" onclick="window.print();return false">📥 Скачать PDF</a>
+</nav>
+
+<!-- СЛАЙД 1: Обзор реализации -->
+<section id="s1" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Implementation Plan · 2026</div>
+    <h1>ParagonSpace: Архитектура реализации</h1>
+    <p class="subtitle" style="max-width:850px">
+      Полный план перехода от MVP к полноценной платформе со Science Layer, GameFi-механиками,
+      NFT smart contract и привязкой к реальным космическим миссиям.
+    </p>
+    <div class="grid grid-3" style="margin-top:30px">
+      <div class="card">
+        <div class="icon">🔭</div>
+        <strong>Science Layer</strong>
+        <p>Интеграция Hipparcos, Gaia DR3, TESS, NASA Exoplanet Archive, JWST. Автоматическая привязка NFT к реальным звездам.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎮</div>
+        <strong>GameFi Engine</strong>
+        <p>Прокачка, добыча ресурсов, созвездия, экспедиции, PvP. Вся логика — смарт-контракты + серверный реестр.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🚀</div>
+        <strong>Космические миссии</strong>
+        <p>SpaceX Transporter, Starlink, ISS, Artemis, Blue Origin. Реальная телеметрия и NFT-ачивки с орбиты.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">01 / 09</div>
+</section>
+
+<!-- СЛАЙД 2: Общая архитектура -->
+<section id="s2" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Architecture · Full Stack</div>
+    <h2>Полная архитектура платформы</h2>
+    <p class="subtitle">Система состоит из 5 слоёв, каждый из которых независим и масштабируется отдельно.</p>
+
+    <div class="diagram" style="margin-bottom:24px">
+      <div class="diagram-box">👤 Web Client<br><span style="font-weight:400;font-size:11px;color:#94a3b8">Next.js + Tailwind</span></div>
+      <span class="diagram-arrow">→</span>
+      <div class="diagram-box">⚡ API Layer<br><span style="font-weight:400;font-size:11px;color:#94a3b8">Next.js API Routes</span></div>
+      <span class="diagram-arrow">→</span>
+      <div class="diagram-box">🗄️ Data Layer<br><span style="font-weight:400;font-size:11px;color:#94a3b8">PostgreSQL + Drizzle</span></div>
+      <span class="diagram-arrow">→</span>
+      <div class="diagram-box">🔗 Smart Contract<br><span style="font-weight:400;font-size:11px;color:#94a3b8">Solidity ERC-721</span></div>
+      <span class="diagram-arrow">→</span>
+      <div class="diagram-box">🌍 Science API<br><span style="font-weight:400;font-size:11px;color:#94a3b8">NASA/ESA/SpaceX</span></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <strong>1. Web Client (Next.js 16)</strong>
+        <ul class="feature-list">
+          <li>Server Components — данные из БД без спинеров</li>
+          <li>3D-карта через CSS perspective (без WebGL)</li>
+          <li>WalletConnect / MetaMask интеграция (wagmi + viem)</li>
+          <li>Научный слой: вкладки с каталогами и миссиями</li>
+          <li>GameFi: прокачка, экспедиции, PvP-интерфейсы</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>2. API Layer (Next.js Route Handlers)</strong>
+        <ul class="feature-list">
+          <li>GET /api/stars — список звезд с фильтрацией</li>
+          <li>POST /api/stars/mint — mint NFT-звезды</li>
+          <li>GET /api/stars/:id/scientific — научные данные звезды</li>
+          <li>POST /api/gamefi/expedition — запуск экспедиции</li>
+          <li>POST /api/gamefi/battle — PvP-сражение</li>
+          <li>GET /api/science/missions — актуальные миссии</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>3. Data Layer (PostgreSQL + Drizzle)</strong>
+        <ul class="feature-list">
+          <li>paragon_stars — основная таблица звезд</li>
+          <li>star_stats — игровые характеристики (уровень, опыт, энергия)</li>
+          <li>star_resources — баланс ресурсов у звезды</li>
+          <li>expeditions_log — история экспедиций</li>
+          <li>battle_log — история PvP-сражений</li>
+          <li>science_links — привязка к научным каталогам</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>4. Smart Contract (Solidity ERC-721)</strong>
+        <ul class="feature-list">
+          <li>ERC-721 с расширенными метаданными</li>
+          <li>tokenURI → возвращает IPFS с научными данными</li>
+          <li>onlyOwner — только владелец может апгрейдить звезду</li>
+          <li>EIP-2981 — роялти с перепродаж (5–10%)</li>
+          <li>ERC-2771 — газлесс-транзакции (опционально)</li>
+        </ul>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <strong>5. Science API Integration (Внешние источники)</strong>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+          <span class="badge badge-cyan">Hipparcos · ESA</span>
+          <span class="badge badge-blue">Gaia DR3 · ESA</span>
+          <span class="badge badge-green">TESS · NASA</span>
+          <span class="badge badge-amber">NASA Exoplanet Archive</span>
+          <span class="badge badge-red">JWST · NASA/ESA</span>
+          <span class="badge badge-fuchsia">SpaceX API</span>
+          <span class="badge badge-cyan">ISS Tracker</span>
+          <span class="badge badge-blue">Blue Origin</span>
+        </div>
+        <p style="margin-top:12px;color:#94a3b8;font-size:13px">Все внешние данные кешируются в PostgreSQL и обновляются по расписанию (cron). NFT привязывается к снапшоту научных данных на момент минта.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">02 / 09</div>
+</section>
+
+<!-- СЛАЙД 3: Science Layer — реализация -->
+<section id="s3" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Science Layer · Implementation</div>
+    <h2>Как работает привязка к научным данным</h2>
+    <p class="subtitle">Процесс от выбора звезды из научного каталога до готовой NFT с верифицированными данными.</p>
+
+    <div class="flow-step">
+      <div class="num">01</div>
+      <div>
+        <strong>Импорт научных каталогов</strong>
+        <p>Загружаем данные Hipparcos (118k звезд), Gaia DR3 (1.8 млрд), TESS (350k) и NASA Exoplanet Archive в PostgreSQL. Каждая звезда получает уникальный science_id и ссылку на оригинальный каталог.</p>
+        <div class="code-block">CREATE TABLE science_catalog_entries (
+  id SERIAL PRIMARY KEY,
+  catalog_id VARCHAR(50) NOT NULL,
+  star_name VARCHAR(255),
+  ra DOUBLE PRECISION NOT NULL,     -- прямое восхождение J2000
+  dec DOUBLE PRECISION NOT NULL,    -- склонение J2000
+  magnitude REAL,
+  spectral_type VARCHAR(10),
+  distance_ly REAL,
+  exoplanet_count INTEGER DEFAULT 0,
+  catalog_source VARCHAR(50),       -- hipparcos | gaia | tess | nasa_exoplanet
+  raw_data JSONB
+);
+CREATE INDEX idx_catalog_sky ON science_catalog_entries (ra, dec);</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="num">02</div>
+      <div>
+        <strong>Генерация NFT-звезд из каталога</strong>
+        <p>Админ или алгоритм выбирает N звезд из каталога для очередного сектора ParagonSpace. Каждая звезда получает: координаты (x/y/z → пересчет из ra/dec), имя, редкость (на основе magnitude и спектрального класса), цвет (из спектра).</p>
+        <div class="code-block">// Алгоритм пересчета научных координат в 3D-карту
+function catalogToStarMap(raDeg: number, decDeg: number, distanceLy: number) {
+  const raRad = raDeg * Math.PI / 180;
+  const decRad = decDeg * Math.PI / 180;
+  const scale = Math.min(distanceLy / 100, 1); // normalize
+
+  return {
+    x: Math.cos(decRad) * Math.cos(raRad) * scale * 100,
+    y: Math.sin(decRad) * scale * 100,
+    z: Math.cos(decRad) * Math.sin(raRad) * scale * 50,
+  };
+}</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="num">03</div>
+      <div>
+        <strong>Минт NFT с научными метаданными</strong>
+        <p>При минте NFT смарт-контракт (или сервер) записывает science_id звезды в метаданные. Владелец получает не просто токен, а ссылку на реальный научный объект. Метаданные включают: название, каталог, RA/DEC, спектр, расстояние, количество экзопланет, ссылку на NASA/ESA страницу.</p>
+        <div class="code-block">{
+  "name": "ParagonSpace Star #42",
+  "science": {
+    "catalog": "Hipparcos",
+    "hipparcos_id": 87937,
+    "hd_id": 168723,
+    "constellation": "Lyra",
+    "ra": 282.47, "dec": 38.78,
+    "spectral_type": "A0V",
+    "magnitude": 3.3,
+    "distance_ly": 25.3,
+    "exoplanets": 0
+  },
+  "image": "ipfs://Qm.../star_42.png",
+  "attributes": [ ... ]
+}</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="num">04</div>
+      <div>
+        <strong>Интеграция с космическими миссиями</strong>
+        <p>Периодический cron-сервис проверяет: какие звезды из каталога попадают в поле зрения JWST, над какими пролетает ISS, какие видны с Марса. Владельцы получают уведомления и ачивки. Для SpaceX — подписка на API запусков и добавление NFT в полезную нагрузку (цифровой сертификат).</p>
+      </div>
+    </div>
+
+    <div class="highlight-green highlight-box">
+      <p><strong>Ключевой принцип:</strong> Научные данные не меняются после минта. NFT хранит снапшот данных на момент выпуска. Это гарантирует, что владелец всегда может доказать подлинность привязки к реальному объекту. Обновления (новые снимки JWST, пролеты ISS) добавляются как achievements, не изменяя оригинал.</p>
+    </div>
+  </div>
+  <div class="slide-number">03 / 09</div>
+</section>
+
+<!-- СЛАЙД 4: GameFi — реализация -->
+<section id="s4" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">GameFi Engine · Implementation</div>
+    <h2>Как работают игровые механики</h2>
+    <p class="subtitle">Два слоя: on-chain (редкость, уровень, PvP-результаты) и off-chain (ресурсы, экспедиции, энергия) для снижения газовых затрат.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <strong>📊 On-chain (Smart Contract)</strong>
+        <ul class="feature-list">
+          <li>Владение NFT (ERC-721)</li>
+          <li>Редкость звезды (immutable после минта)</li>
+          <li>Уровень (level) — только владелец может повысить</li>
+          <li>PvP-результаты (победы/поражения)</li>
+          <li>Привязка к science_id</li>
+        </ul>
+        <div class="code-block" style="margin-top:8px">// Solidity — Star NFT с игровыми данными
+contract ParagonStar is ERC721, ERC2981 {
+    struct StarData {
+        uint256 scienceId;  // ссылка на каталог
+        uint8 rarity;       // 0=common … 5=mythic
+        uint16 level;       // 1-99
+        uint32 wins;        // PvP победы
+        uint32 losses;      // PvP поражения
+    }
+
+    mapping(uint256 => StarData) public stars;
+    mapping(uint256 => address) public lastBattleOpponent;
+
+    function levelUp(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender);
+        require(stars[tokenId].level < 99);
+        // Проверка наличия ресурсов (off-chain оракул)
+        stars[tokenId].level++;
+    }
+}</div>
+      </div>
+      <div class="card">
+        <strong>⚡ Off-chain (PostgreSQL + API)</strong>
+        <ul class="feature-list">
+          <li>Энергия звезды (восстанавливается по времени)</li>
+          <li>Ресурсы (Star Dust, Energy Crystals и др.)</li>
+          <li>Экспедиции (запуск, прогресс, завершение)</li>
+          <li>Созвездия (группировка звезд одного владельца)</li>
+          <li>Научные ачивки (JWST, ISS, Mars)</li>
+        </ul>
+        <div class="code-block" style="margin-top:8px">// TypeScript — Серверный GameFi Engine
+class GameFiEngine {
+  async startExpedition(starId: number, expeditionId: number) {
+    const star = await db.select().from(paragonStars)
+      .where(eq(paragonStars.id, starId)).limit(1);
+    const expedition = EXPEDITIONS.find(e => e.id === expeditionId);
+
+    if (star.energy < expedition.requiredEnergy)
+      throw new Error('Недостаточно энергии');
+
+    await db.insert(expeditionsLog).values({
+      starId, expeditionId, startTime: new Date(),
+      endTime: addHours(new Date(), expedition.durationHours),
+    });
+
+    return { status: 'started', endsAt: ... };
+  }
+
+  async claimExpedition(starId: number) {
+    const log = await db.select().from(expeditionsLog)
+      .where(and(
+        eq(expeditionsLog.starId, starId),
+        isNull(expeditionsLog.claimedAt)
+      )).limit(1);
+
+    if (!log || new Date() < log.endTime)
+      throw new Error('Экспедиция еще не завершена');
+
+    // Начисление ресурсов
+    await db.update(starResources)
+      .set({ star_dust: sql\`star_dust + $\{rewards.star_dust}\` })
+      .where(eq(starResources.starId, starId));
+
+    return { rewards };
+  }
+}</div>
+      </div>
+    </div>
+
+    <div class="highlight-green highlight-box">
+      <p><strong>Почему on-chain + off-chain?</strong> Полностью on-chain GameFi сделал бы каждое действие (добыча, экспедиция, ачивка) дорогим в газе. Off-chain слой хранит ресурсы и энергию, а on-chain — только финальные результаты (уровень, PvP, редкость). Это дает экономию газа в 100–1000 раз.</p>
+    </div>
+  </div>
+  <div class="slide-number">04 / 09</div>
+</section>
+
+<!-- СЛАЙД 5: NFT & Smart Contract -->
+<section id="s5" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">NFT · Smart Contract · Tokenomics</div>
+    <h2>Смарт-контракт и экономика токенов</h2>
+    <p class="subtitle">ERC-721 с расширенными метаданными, EIP-2981 роялти и ERC-2771 для газлесс-транзакций.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <strong>📜 Smart Contract Architecture</strong>
+        <ul class="feature-list">
+          <li><strong>ERC-721</strong> — базовый стандарт NFT</li>
+          <li><strong>ERC-2981</strong> — роялти (5% автору, 5% ParagonSpace)</li>
+          <li><strong>ERC-2771</strong> — газлесс-транзакции (пользователь платит в токенах)</li>
+          <li><strong>Merkle Tree</strong> — whitelist для ранних минтов</li>
+          <li><strong>TokenURI dynamic</strong> — метаданные обновляются при апгрейдах</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>💰 Tokenomics</strong>
+        <div class="code-block">// Структура доходов с минта одной звезды
+Primary Sale: $50–$500 (зависит от редкости)
+  ├─ 70% → Разработка и операционные расходы
+  ├─ 15% → Научное партнерство (NASA/ESA/университеты)
+  ├─ 10% → Маркетинг и комьюнити
+  └─ 5% → Команда и advisors
+
+Secondary Sale (перепродажа): 10% royalty
+  ├─ 5% → ParagonSpace (развитие платформы)
+  ├─ 2.5% → Научный фонд (гранты и данные)
+  ├─ 1.5% → Вознаграждение владельцу звезды
+  └─ 1% → DAO Treasury</div>
+      </div>
+      <div class="card">
+        <strong>🔗 Deployment Plan</strong>
+        <ul class="feature-list">
+          <li><strong>Base (L2)</strong> — низкие комиссии, экосистема Coinbase</li>
+          <li><strong>Polygon</strong> — альтернатива с большой NFT-аудиторией</li>
+          <li><strong>Ethereum</strong> — основной L1 для премиум-минтов</li>
+          <li>Cross-chain bridge в будущем (LayerZero / CCIP)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>🔐 Безопасность</strong>
+        <ul class="feature-list">
+          <li>Аудит смарт-контракта (Trail of Bits / OpenZeppelin)</li>
+          <li>OpenZeppelin Contracts — проверенные библиотеки</li>
+          <li>Timelock на upgradeable контракты (48ч задержка)</li>
+          <li>Multi-sig (Gnosis Safe) для административных функций</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-amber highlight-box">
+      <p><strong>Зачем Base L2?</strong> Mint на Ethereum Mainnet может стоить $50–200 газа. На Base (Coinbase L2) средняя комиссия — $0.01–0.05. Это делает GameFi-механики (апгрейд, баттлы) экономически доступными. Для премиум-секторов оставляем возможность минта на Ethereum.</p>
+    </div>
+  </div>
+  <div class="slide-number">05 / 09</div>
+</section>
+
+<!-- СЛАЙД 6: Science API Integration -->
+<section id="s6" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Science API · SpaceX · NASA · ESA</div>
+    <h2>Интеграция с космическими API</h2>
+    <p class="subtitle">Как ParagonSpace подключается к реальным данным из космоса.</p>
+
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <strong>🔭 NASA APIs</strong>
+        <ul class="feature-list">
+          <li><strong>NASA Exoplanet Archive API</strong> — получение списка звезд с экзопланетами, обновление раз в неделю</li>
+          <li><strong>MAST Portal API (STScI)</strong> — данные JWST, Hubble, TESS. Поиск изображений по координатам</li>
+          <li><strong>NASA Image & Video Library</strong> — официальные изображения для NFT-метаданных</li>
+          <li><strong>ISS Tracker API</strong> — реальное положение станции, расчет зенита над звездами</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>🚀 SpaceX & Commercial</strong>
+        <ul class="feature-list">
+          <li><strong>SpaceX Launch API (unofficial)</strong> — данные о запусках, полезной нагрузке, окнах старта</li>
+          <li><strong>Space-Track.org</strong> — TLE-данные спутников Starlink для трекинга</li>
+          <li><strong>Blue Origin Launch Schedule</strong> — публичные данные о полетах New Shepard</li>
+          <li><strong>Celestrak</strong> — орбитальные данные для ISS и тысяч спутников</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <strong>🔄 Процесс синхронизации</strong>
+      <div class="diagram" style="justify-content:flex-start;padding:8px 0">
+        <div class="diagram-box" style="font-size:11px;padding:8px 12px">Cron (каждые 6ч)</div>
+        <span class="diagram-arrow" style="font-size:1rem">→</span>
+        <div class="diagram-box" style="font-size:11px;padding:8px 12px">API-шлюз</div>
+        <span class="diagram-arrow" style="font-size:1rem">→</span>
+        <div class="diagram-box" style="font-size:11px;padding:8px 12px">PostgreSQL (кэш)</div>
+        <span class="diagram-arrow" style="font-size:1rem">→</span>
+        <div class="diagram-box" style="font-size:11px;padding:8px 12px">NFT Metadata</div>
+      </div>
+      <ol style="margin-top:8px;font-size:13px">
+        <li>Каждые 6 часов cron-воркер опрашивает NASA Exoplanet Archive, MAST, ISS Tracker</li>
+        <li>Новые данные записываются в таблицу science_updates с привязкой к star_id</li>
+        <li>Если звезда получила новый JWST-снимок или над ней пролетела ISS — владельцу приходит уведомление</li>
+        <li>Уведомление может быть: email, push, in-app или on-chain (через событие в контракте)</li>
+        <li>Для SpaceX: подписка на RSS/JSON фид запусков + ручная верификация перед привязкой к NFT</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <strong>📋 Пример: JWST Certified Achievement</strong>
+      <div class="code-block">// Псевдокод проверки JWST-статуса звезды
+async function checkJWSTStatus() {
+  const stars = await db.select().from(paragonStars)
+    .where(eq(paragonStars.minted, true));
+
+  for (const star of stars) {
+    const jwstObservations = await mastApi.query({
+      ra: star.ra, dec: star.dec,
+      radius: 0.1, // градусов
+      mission: 'JWST',
+    });
+
+    if (jwstObservations.length > 0 && !star.jwstCertified) {
+      await db.update(paragonStars)
+        .set({ jwstCertified: true, jwstImageUrl: jwstObservations[0].url })
+        .where(eq(paragonStars.id, star.id));
+
+      await notifyOwner(star.ownerId,
+        `🌟 Ваша звезда ${star.name} теперь JWST Certified!`);
+    }
+  }
+}</div>
+    </div>
+  </div>
+  <div class="slide-number">06 / 09</div>
+</section>
+
+<!-- СЛАЙД 7: Roadmap реализации -->
+<section id="s7" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Implementation Roadmap</div>
+    <h2>Поэтапный план реализации</h2>
+    <p class="subtitle">12 месяцев от MVP до платформы с Science Layer, GameFi и космическими партнерами.</p>
+
+    <div class="grid grid-2" style="margin-bottom:20px">
+      <div class="card" style="border-left:3px solid var(--cyan)">
+        <span class="badge badge-cyan" style="margin-bottom:8px">Phase 1: MVP+ · 2 месяца</span>
+        <strong>Текущий MVP + доработки</strong>
+        <ul style="font-size:13px;margin-top:8px;padding-left:16px">
+          <li>3D-карта и Mint Console (уже готово)</li>
+          <li>Seed-каталог Hipparcos (первые 1000 звезд)</li>
+          <li>Базовая GameFi-логика (уровень, ресурсы)</li>
+          <li>WalletConnect интеграция (wagmi)</li>
+          <li>ERC-721 контракт на Base Sepolia</li>
+        </ul>
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Бюджет: $50k · Команда: 2–3 разработчика</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--fuchsia)">
+        <span class="badge badge-fuchsia" style="margin-bottom:8px">Phase 2: Science Alpha · 3 месяца</span>
+        <strong>Полная интеграция науки и космоса</strong>
+        <ul style="font-size:13px;margin-top:8px;padding-left:16px">
+          <li>Импорт Gaia DR3, TESS, NASA Exoplanet Archive</li>
+          <li>NASA/ESA/SpaceX API-шлюз и cron-синхронизация</li>
+          <li>Star Name to Orbit — программа с SpaceX</li>
+          <li>Научные ачивки: JWST Certified, ISS Flyover</li>
+          <li>Партнерская программа для университетов</li>
+        </ul>
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Бюджет: $100k · Команда: 5–6 человек</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--amber)">
+        <span class="badge badge-amber" style="margin-bottom:8px">Phase 3: GameFi Beta · 3 месяца</span>
+        <strong>Полноценная игровая экономика</strong>
+        <ul style="font-size:13px;margin-top:8px;padding-left:16px">
+          <li>Expedition System (5 миссий, energy system)</li>
+          <li>PvP-сектора (4 арены, формула боя)</li>
+          <li>Созвездия (альянсы с бонусами)</li>
+          <li>Marketplace (list, buy, cancel, royalties)</li>
+          <li>DAO-голосование за научные направления</li>
+        </ul>
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Бюджет: $150k · Команда: 8–10 человек</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--green)">
+        <span class="badge badge-green" style="margin-bottom:8px">Phase 4: Launch · 4 месяца</span>
+        <strong>Public launch и масштабирование</strong>
+        <ul style="font-size:13px;margin-top:8px;padding-left:16px">
+          <li>Public mint на Base + Ethereum</li>
+          <li>AR/VR-режим для мобильных устройств</li>
+          <li>Мультичейн (Polygon, Arbitrum)</li>
+          <li>Публичный API для сторонних интеграций</li>
+          <li>Брендовые созвездия (B2B-продажи)</li>
+        </ul>
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Бюджет: $200k+ · Команда: 10–15 человек</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Этап</th><th>Срок</th><th>Бюджет</th><th>Состояние</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Phase 1: MVP+</td><td>0–2 мес</td><td>$50k</td><td><span class="badge badge-green">В процессе</span></td></tr>
+          <tr><td>Phase 2: Science Alpha</td><td>2–5 мес</td><td>$100k</td><td><span class="badge badge-cyan">Требует финансирования</span></td></tr>
+          <tr><td>Phase 3: GameFi Beta</td><td>5–8 мес</td><td>$150k</td><td><span class="badge badge-amber">Требует финансирования</span></td></tr>
+          <tr><td>Phase 4: Launch</td><td>8–12 мес</td><td>$200k+</td><td><span class="badge badge-red">План</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="slide-number">07 / 09</div>
+</section>
+
+<!-- СЛАЙД 8: Бюджет и команда -->
+<section id="s8" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content">
+    <div class="tag">Budget · Team · Next Steps</div>
+    <h2>Бюджет и команда</h2>
+    <p class="subtitle">Прозрачная структура затрат + роли для реализации Science + GameFi + NFT.</p>
+
+    <div class="grid grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <strong>💼 Pre-seed ($150k–$300k) — распределение</strong>
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Smart contract + аудит</span>
+            <span style="font-weight:700;font-size:14px">$30–50k</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">WalletConnect + on-chain mint</span>
+            <span style="font-weight:700;font-size:14px">$40k</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Science Layer (каталоги + API)</span>
+            <span style="font-weight:700;font-size:14px">$50k</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">GameFi Engine (сервер)</span>
+            <span style="font-weight:700;font-size:14px">$40k</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Маркетинг + комьюнити</span>
+            <span style="font-weight:700;font-size:14px">$50k</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Юридическая упаковка</span>
+            <span style="font-weight:700;font-size:14px">$20k</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0">
+            <span style="font-size:14px">Science партнерства (NASA/ESA)</span>
+            <span style="font-weight:700;font-size:14px">$30k</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <strong>👥 Команда (рекомендуемая)</strong>
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Solidity-разработчик</span>
+            <span style="font-size:13px;color:#64748b">Full-time</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Fullstack (Next.js + TS)</span>
+            <span style="font-size:13px;color:#64748b">Full-time</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Data Scientist (астрономия)</span>
+            <span style="font-size:13px;color:#64748b">Part-time</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">UI/UX дизайнер</span>
+            <span style="font-size:13px;color:#64748b">Part-time</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Community / Marketing</span>
+            <span style="font-size:13px;color:#64748b">Full-time</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="font-size:14px">Научный консультант (NASA/ESA)</span>
+            <span style="font-size:13px;color:#64748b">Advisor</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0">
+            <span style="font-size:14px">Космический инженер (SpaceX/Blue)</span>
+            <span style="font-size:13px;color:#64748b">Advisor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box highlight-green">
+      <p><strong>Как привлечь Илона Маска / SpaceX?</strong></p>
+      <ol style="margin-top:8px;font-size:13px">
+        <li><strong>Star Name to Orbit:</strong> предложить SpaceX программу, где владельцы NFT отправляют имена на реальных спутниках Starlink</li>
+        <li><strong>STEM-образование:</strong> ParagonSpace как инструмент популяризации астрономии — бесплатные NFT для студентов</li>
+        <li><strong>Брендовое созвездие:</strong> предложить SpaceX собственное созвездие на карте с привязкой к миссиям</li>
+        <li><strong>Партнерский маркетинг:</strong> каждый запуск SpaceX → новый дроп NFT-звезд, привязанных к миссии</li>
+        <li><strong>Научная легитимность:</strong> через каталоги NASA/ESA и партнерство с университетами</li>
+      </ol>
+    </div>
+  </div>
+  <div class="slide-number">08 / 09</div>
+</section>
+
+<!-- СЛАЙД 9: Next Steps -->
+<section id="s9" class="slide">
+  <div class="slide-bg"></div>
+  <div class="slide-grid"></div>
+  <div class="content center">
+    <div class="tag">Next Steps · Action Plan</div>
+    <h2>Следующие шаги</h2>
+    <p class="subtitle" style="margin:0 auto 40px">
+      У вас есть полный план реализации. Вот что нужно сделать прямо сейчас, чтобы запустить ParagonSpace с Science + GameFi.
+    </p>
+    <div class="grid grid-3" style="max-width:800px;margin:0 auto">
+      <div class="card">
+        <div class="icon">📱</div>
+        <strong>1. Запустить демо</strong>
+        <p>Протестировать текущий MVP — 3D-карту, Mint Console, все разделы сайта. Это работает уже сейчас.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔬</div>
+        <strong>2. Импорт каталогов</strong>
+        <p>Загрузить Hipparcos и Gaia DR3 в PostgreSQL. Алгоритмы пересчета координат готовы.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📄</div>
+        <strong>3. White paper</strong>
+        <p>Составить детальный white paper с токеномикой, GameFi-механиками и научной программой.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🚀</div>
+        <strong>4. SpaceX партнерство</strong>
+        <p>Подготовить питч для SpaceX / Starbase. Star Name to Orbit — первая программа.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎓</div>
+        <strong>5. Университеты</strong>
+        <p>Запустить партнерскую программу для астрономических факультетов. Бесплатные звезды для студентов.</p>
+      </div>
+      <div class="card">
+        <div class="icon">💰</div>
+        <strong>6. Pre-seed раунд</strong>
+        <p>Привлечь $150k–$300k для Phase 2 (Science Alpha) и Phase 3 (GameFi Beta).</p>
+      </div>
+    </div>
+    <div class="highlight-box highlight-amber" style="max-width:600px;margin:30px auto 0">
+      <p><strong>Итог:</strong> ParagonSpace — это не просто NFT-проект. Это платформа на стыке GameFi, реальной науки и космической индустрии. Каждый компонент уже спроектирован и готов к реализации. Нужен только стартовый капитал и правильные партнерства.</p>
+    </div>
+    <p style="font-size:14px;color:#475569;margin-top:20px">
+      ParagonSpace · 2026 · Implementation Plan v1.0
+    </p>
+  </div>
+  <div class="slide-number">09 / 09</div>
+</section>
+
+<div class="footer-note">
+  ParagonSpace — Implementation Plan · Скачано с paragonspace.app · Все данные проектные
+</div>
+</body>
+</html>
